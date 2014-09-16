@@ -1,26 +1,3 @@
-angular.module('hz').factory
-    ('SatelliteErrata', ['$resource', 'Base64',
-        function ($resource, Base64) {
-
-             var getAuthToken = function(username, password) {
-                        var tokenize = username + ':' + password;
-                        tokenize = Base64.encode(tokenize);
-                        return "Basic " + tokenize;
-                    };
-
-             var SatelliteErrata = $resource('https://sat-perf-05.idm.lab.bos.redhat.com/katello/api/v2/systems/:id/errata', {id: '@uuid'}, {
-                     get: {
-                         method: 'GET',
-                         isArray: false,
-                         headers: { 'Authorization': getAuthToken('admin', 'changeme') }
-                     }
-                 }
-             );
-
-             return SatelliteErrata;
-
-        }]);
-
 angular.module('hz').directive({
     satelliteErrata: [ function () {
 
@@ -31,12 +8,34 @@ angular.module('hz').directive({
             scope: {
                 uuid: '='
             },
-            controller: ['$scope', 'SatelliteErrata', '$http', 'Base64', 'ngTableParams', '$filter',
-                function ($scope, SatelliteErrata, $http, Base64, ngTableParams, $filter) {
+            controller: ['$scope', '$http', 'Base64', 'ngTableParams', '$filter',
+                function ($scope, $http, Base64, ngTableParams, $filter) {
 
-                    var baseUrl = 'https://sat-perf-05.idm.lab.bos.redhat.com';
+                    var baseUrl, getAuthToken, defaultParams, getErrata, payload;
+		    baseUrl = 'https://sat-perf-05.idm.lab.bos.redhat.com';
+		    
+                    getAuthToken = function (username, password) {
+                        var tokenize = username + ':' + password;
+                        tokenize = Base64.encode(tokenize);
+                        return "Basic " + tokenize;
+                    };
 
-                    var defaultParams = function (data) {
+		    getErrata = function (uuid) {
+			var errataUrl, errata;
+			errataUrl = baseUrl + "/katello/api/v2/systems/" + uuid + "/errata/";
+			console.log('GET: ' + errataUrl);
+			$http( { url: errataUrl, method: 'GET', headers: { 'Authorization': getAuthToken('admin', 'changeme') } } )
+			    .success(function (e) {
+				$scope.errata = e;
+			        $scope.errataParams = defaultParams(e);
+				errata = e;
+			    }).error(function (e) {
+				console.log("Error:");
+				console.log(e);
+			    });
+		    };
+
+                    defaultParams = function (data) {
                         var params = new ngTableParams({
                             page: 1,            // show first page
                             count: 10           // count per page
@@ -61,14 +60,7 @@ angular.module('hz').directive({
                         return baseUrl + '/content_hosts/' + $scope.uuid + '/errata/' + errata.errata_id;
                     };
 
-                    var payload = SatelliteErrata.get({id: $scope.uuid});
-                    payload.$promise.then(
-                        function() {
-                            $scope.errata = payload.results
-                            $scope.errataParams = defaultParams($scope.errata);
-                        });
-
-
+		    getErrata($scope.uuid);
             }],
             template:
                '<table ng-table="errataParams" class="table">\n' +
