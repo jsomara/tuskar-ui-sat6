@@ -174,3 +174,13 @@
     </div>
   </div>
 </div>
+{% if node.uuid %}
+<br />
+<br />
+<div>
+<h4>{% trans "Errata" %}</h4>
+  <div ng-controller="ErrataController">
+     <div satellite-errata address="'{{ node.addresses.0 }}'"></div>
+  </div>
+</div>
+{% endif %}

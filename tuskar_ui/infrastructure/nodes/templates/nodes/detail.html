@@ -4,6 +4,14 @@
 {% block page_header %}
 {% include "horizon/common/_page_header.html" %}
 {% endblock page_header %}
+
+{% block js %}
+{{ block.super }}
+<script src='{{ STATIC_URL }}infrastructure/js/angular/ng-table.js' type='text/javascript' charset='utf-8'></script>
+<script src='{{ STATIC_URL }}infrastructure/js/angular/tuskar.base64.js' type='text/javascript' charset='utf-8'></script>
+<script src='{{ STATIC_URL }}infrastructure/js/angular/tuskar.node_errata.js' type='text/javascript' charset='utf-8'></script>
+{% endblock %}
+
 {% block main %}
 <div class="row">
   <div class="col-sm-12">
